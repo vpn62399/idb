@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="Thu, 01 Dec 1994 16:00:00 GMT">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>テストページ</title>
+    <meta name="Keywords" content="テスト">
+    <meta name="Description" content="テスト">
+    <meta name="format-detection" content="telephone=no">
+    <!-- <link href="../favicon.ico" rel="icon" type="image/x-icon"> -->
+    <!-- <link href="../style.css" rel="stylesheet" type="text/css"> -->
+    <!-- <script type="text/javascript" async="" src=""></script><script type="text/javascript" src=""></script> -->
+</head>
+
+
+<body>
+    <div>
+
+
+    </div>
+    <div>
+
+    </div>
+
+
+</body>
+<script type="text/javascript">
+    async function show1() {
+        try {
+            let url = './API/mysqlacc.php';
+            let m = await fetch(url);
+            if (m.status == 200 && m.statusText == 'OK') {
+                let mm = await m.json();
+                console.log(mm);
+            }
+        } catch (error) {
+            console.log('error');
+        }
+    }
+
+    window.addEventListener('load', function () {
+        console.log("jj");
+        show1();
+        setInterval(function () {
+
+        }, 5000);
+        console.log("koo");
+    })
+
+</script>
+
+</html>

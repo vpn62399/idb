@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="Thu, 01 Dec 1994 16:00:00 GMT">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>製品入荷登録</title>
+    <meta name="Keywords" content="テスト">
+    <meta name="Description" content="テスト">
+    <meta name="format-detection" content="telephone=no">
+</head>
+
+<body>
+    <div>
+        <form accept="" method="get" id="aform">
+            <input type="text" id="palletNo" name="palletNo" required minlength="4" maxlength="8" size="10" />
+            <input type="text" id="cartonNo" name="cartonNo" required minlength="9" maxlength="10" size="10" />
+            <button type="submit" id="abutton">add</button>
+        </form>
+        <output id="output"></output>
+    </div>
+    <div>
+
+    </div>
+
+
+</body>
+<script type="text/javascript">
+
+    let o = document.getElementById("output");
+    let add = document.getElementById("abutton");
+    add.addEventListener("click", function () {
+        let f = new FormData(document.getElementById("aform"));
+        for (let [key, value] of f) {
+            console.log(key);
+            console.log(value);
+            debugger;
+            o.textContent += '${key}: ${value}\n';
+            o.textContent += `${key}: ${value}\n`;
+        }
+    })
+</script>
+
+</html>

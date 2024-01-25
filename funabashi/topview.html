@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="Thu, 01 Dec 1994 16:00:00 GMT">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>テストページ</title>
+    <meta name="Keywords" content="トップページ">
+    <meta name="Description" content="トップページ">
+    <meta name="format-detection" content="telephone=no">
+    <!-- <link href="../favicon.ico" rel="icon" type="image/x-icon"> -->
+    <!-- <link href="../style.css" rel="stylesheet" type="text/css"> -->
+    <!-- <script type="text/javascript" async="" src=""></script><script type="text/javascript" src=""></script> -->
+</head>
+
+<body>
+    <input type="date" id="sdate">
+    <input type="button" id="botton1" value="更新">
+    <table id="Total_Day_table1" border="1" cellspacing="0" cellpadding="0">
+        <div>
+        </div>
+        <thead>
+            <tr>
+
+                <td id="t1-td0">収集時間</td>
+
+                <td id="t1-td1">OK完了数</td>
+
+                <td id="t1-td2">NG完了数</td>
+
+                <td id="t1-td3">合計完了数</td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <table id="NG_etc_table2" border="1" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <td>項目</td>
+                <td>数量</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+</body>
+
+<script type="text/javascript">
+    var NG_etcs = new Array();
+    var sqlcmdpool = new FormData();
+
+    async function asyncawait(opt, callbackFN) {
+        sqlcmdpool.append('NG_etcs', JSON.stringify(NG_etcs));
+        sqlcmdpool.append('inDate', document.getElementById('sdate').value)
+        try {
+            let de = {
+                method: 'POST',
+                body: sqlcmdpool
+            };
+            let url = './topview.php?' + opt;
+            let m = await fetch(url, de);
+            if (m.status == 200 && m.statusText == 'OK') {
+                let json_data = await m.json();
+                callbackFN(json_data);
+            } else {
+                throw new Error("Json_error");
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // 日付変更のイベント
+    function change_date_event() {
+        let e = document.getElementById('sdate');
+        e.addEventListener('change', function () {
+            e.setAttribute('value', e.value);
+            asyncawait("m=cr4", Get_NGetc_vol_callback);
+        })
+    }
+
+    // 不良内容項目の表 例
+    // 9:"TouchPanel操作不良"
+    // 10:"保護袋髒汙"
+    function Get_NGetc_items_callback(redata) {
+        let NG_etc_i = redata['NG_etc_item'];
+        for (let v of NG_etc_i) {
+            NG_etcs.push(v[0]);
+        }
+        NG_etcs = [...new Set(NG_etcs)];
+        asyncawait("m=cr4", Get_NGetc_vol_callback);
+    }
+
+    // 不良数量をカウントする
+    // HTML のTR 表を作成する。
+    function Get_NGetc_vol_callback(redata) {
+        // 2つの方法でデータを
+        // 在 JavaScript 中，Object 是不可迭代的
+        // console.log(redata['NG_etc_val']);
+        // console.info("xxx2", redata);
+        // for (let i of Object.keys(redata['NG_etc_val'])) {
+        // }
+        // for (let [a, b] of Object.entries(redata['NG_etc_val'])) {
+        // }
+
+        // 個別の集計
+        let dc1 = document.getElementById('NG_etc_table2');
+        dc1.removeChild(dc1.firstElementChild.nextElementSibling);
+        let tb1 = document.createElement('tbody');
+        dc1 = dc1.appendChild(tb1);
+        for (let i of Object.keys(redata['NG_etc_val'])) {
+            // console.log("xxdebug", redata['NG_etc_val']);
+            let tr = document.createElement('tr');
+            let td = document.createElement('td');
+            td.innerText = redata['NG_etc_val'][i][0][0];
+            td2 = document.createElement('td');
+            td2.innerText = redata['NG_etc_val'][i][0][1];
+            tr.appendChild(td);
+            tr.appendChild(td2);
+            dc1.appendChild(tr);
+        }
+
+        // 全体/指定日の集計
+        let dc0 = document.getElementById('Total_Day_table1');
+        dc0.removeChild(dc0.firstElementChild.nextElementSibling);
+        let tb0 = document.createElement('tbody');
+        dc0 = dc0.appendChild(tb0);
+        let tr = document.createElement('tr');
+        for (let j of Object.keys(redata['totaltoday'])) {
+            let td = document.createElement('td');
+            // console.log("xxxdebug", redata['totaltoday'][j][0][0]);
+            td.innerText = redata['totaltoday'][j][0][0];
+            tr.appendChild(td);
+        }
+        tb0.appendChild(tr);
+
+    }
+
+    // 更新ボタンClickイベント
+    function button1_click_event() {
+        let e = document.getElementById('botton1');
+        e.addEventListener('click', function (e) {
+            asyncawait("m=cr4", Get_NGetc_vol_callback);
+        })
+    }
+
+    window.addEventListener('load', function () {
+        asyncawait('m=pcrework_ng', Get_NGetc_items_callback);
+        change_date_event();
+        button1_click_event();
+    })
+
+</script>
+
+</html>
