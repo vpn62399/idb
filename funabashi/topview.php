@@ -90,7 +90,7 @@ class topview extends mainapi
             array_push($sql, ['1st_AllTotal' => 'select count(*) from ' . $this->useTable]);
             // array_push($sql, ['byPallentNo' => 'select palletNo,count(*) from ' . $this->useTable . " group by palletNo"]);
         } else {
-            array_push($sql, ['request_date' =>  'select now() from ' . $this->useTable . " where inDate < :d limit 1"]);
+            array_push($sql, ['request_date' =>  'select now() from ' . $this->useTable . " where inDate <= :d limit 1"]);
             array_push($sql, ['1st_DayOK' => 'select count(*) from ' . $this->useTable . " where inDate = :d and (NG_etc is null or NG_etc like 'SIM tray無法推出  交換後OK')"]);
             array_push($sql, ['1st_DayNG' => 'select count(*) from ' . $this->useTable . " where inDate = :d and (NG_etc != '' and NG_etc not like 'SIM tray無法推出  交換後OK')"]);
             array_push($sql, ['1st_DayTotal' => 'select count(*) from ' . $this->useTable . " where inDate= :d"]);
