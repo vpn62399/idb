@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="Thu, 01 Dec 1994 16:00:00 GMT">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>テストページ</title>
+    <meta name="Keywords" content="トップページ">
+    <meta name="Description" content="トップページ">
+    <meta name="format-detection" content="telephone=no">
+    <!-- <link href="../favicon.ico" rel="icon" type="image/x-icon"> -->
+    <link href="../check/thiscss.css" media="screen and (min-width: 768px)">
+    <!-- <script type="text/javascript" async="" src=""></script><script type="text/javascript" src=""></script> -->
+</head>
+<div>
+    <div>
+        <label>プロジェクトネーム</label><br>
+        <input type="text" id="project" value="test">
+    </div>
+    <div>
+        <labal>番号の先頭数字</labal><br>
+        <input type="text" id="imeifilter" inputmode="text" value="S1NXL">
+    </div>
+    <div>
+        <labal>番号の桁数</labal><br>
+        <input type=" number" id="imeisize" inputmode="numeric" min="9" max="30" value="15">
+    </div>
+    <div>
+        <labal>照合回数1,2,3</labal><br>
+        <input type="number" id="checkcount" inputmode="numeric" min="2" max="3" value="3">
+    </div>
+    <div>
+        <labal>カートン数量</labal><br>
+        <input type="number" id="cartonsize" inputmode="numeric" min="1" max="40" value="5">
+    </div>
+    <div>
+        <labal>パレット番号</labal><br>
+        <input type="number" id="palletsize" inputmode="numeric" min="1" max="40" value="1">
+    </div>
+    <div>
+        <labal>カートンシリアル</labal><br>
+        <input type="text" id="cartonserial" inputmode="numeric" min="1" max="40" value="5">
+    </div>
+    <div>
+        <input type="button" id="setbutton" value="設定を適用">
+    </div>
+    <div>
+        <div>
+            <label>SNスキャン IME=>直接入力</label><br>
+            <input type="text" id="snscan">
+        </div>
+    </div>
+</div>
+<div>
+    <output type="text" id="thisout"></output>
+    <br>
+    <output type="text" id="thisout2"></output>
+    <br>
+    <output type="text" id="thisout3"></output>
+</div>
+<div>
+    <textarea type="number" id="pool" name="ppp" rows="30" cols="22"></textarea>
+</div>
+<br>
+<select id="voiceSelect"></select>
+
+<body>
+</body>
+<script type="text/javascript">
+    let poola = new Set();
+    let poolacopy = new Set();
+    let ckarray = new Array();
+    let opt = { "my": new Date() };
+    let IMEI_size;
+    let IMEI_filter;
+    let carton_size;
+    let carton_serial;
+    let pallet_size;
+    let setflag = 0;
+    let pname;
+    let pushMSG_array = ["", ""];
+    let spi = 0;
+    let splang = '';  //ja-JP  zh-CN
+    const SpeeJP = "ja-JP";
+    const SpeeCN = "zh-CN";
+
+    window.addEventListener("load", function () {
+        fa();
+        fc();
+        speechfn();
+        sheepX = window.speechSynthesis;
+        let poolarea = document.getElementById("pool");
+        poolarea.addEventListener("keyup", (e) => {
+            fb();
+        })
+    })
+
+    let cartonID2 = () => {
+        var S = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        var N = 16
+        return Array.from(crypto.getRandomValues(new Uint8Array(N))).map((n) => S[n % S.length]).join('');
+    }
+
+    function fc() {
+        opt["imei_size"] = document.getElementById("imeisize").value;
+        opt["imei_filter"] = document.getElementById("imeifilter").value;
+        opt["carton_size"] = document.getElementById("cartonsize").value;
+        opt["carton_serial"] = document.getElementById("cartonserial").value;
+        opt["pallet_size"] = document.getElementById("palletsize").value;
+        opt["check_count"] = document.getElementById("checkcount").value;
+        opt["project"] = document.getElementById("project").value;
+
+        document.getElementById("setbutton").addEventListener("click", e => {
+            opt["imei_size"] = document.getElementById("imeisize").value;
+            opt["imei_filter"] = document.getElementById("imeifilter").value;
+            opt["carton_size"] = document.getElementById("cartonsize").value;
+            opt["carton_serial"] = document.getElementById("cartonserial").value;
+            opt["pallet_size"] = document.getElementById("palletsize").value;
+            opt["check_count"] = document.getElementById("checkcount").value;
+            opt["project"] = document.getElementById("project").value;
+            document.getElementById("snscan").value = "";
+            poola.clear();
+            fb();
+            // pushSpeech([
+            //     "設定適用されました、次にカートン箱すべてのシリアル番号をスキャンをしてください",
+            //     "设置已应用，现在请扫描大包装箱所有的序列号"]);
+            pushSpeech(["設定適用されました", "设置已应用"]);
+            pushMSG("設定適用しました");
+            setflag = 1;
+        })
+    }
+
+    function fa() {
+        let sn = document.getElementById("snscan");
+        sn.addEventListener("keydown", function (e) {
+            if (13 == e.keyCode && sn.value != "") {
+                if (setflag !== 1) {
+                    pushMSG("先に設定を保存してください");
+                    pushSpeech([
+                        "先に設定項目を確認し保存してからカートン箱すべてのシリアル番号をスキャンをしてください",
+                        "首先保存设定，然后扫描大包装箱所有的序列号"]);
+                    return;
+                }
+
+                if (poola.size < opt["carton_size"]) {
+                    pushMSG(sn.value);
+                    checknum_addpoola(sn.value);
+                } else {
+                    pushMSG(sn.value);
+                    double_check(sn.value);
+                }
+                fb();
+                sn.value = "";
+            }
+        })
+    }
+
+    // プールにシリアル番号の追加
+    function checknum_addpoola(num) {
+        if (num.length == opt["imei_size"] && num.includes(opt["imei_filter"])) {
+            poola.add(num);
+            poolacopy.add(num);
+            pushSpeech([poolacopy.size, poolacopy.size]);
+        } else {
+            pushSpeech(["先頭数字一致しない,或いは桁数一致しない", "序列号的初始值不一致或长度不一致"])
+            pushMSG("先頭数字一致しない");
+        }
+
+        if (poola.size == opt["carton_size"]) {
+            pushSpeech(["スキャンが完了しました、次は本体、化粧箱のシリアル番号を照合してください",
+                "大外箱的序列号扫描完成，"]);
+            console.log("poolasize", poola);
+            fb();
+        }
+    }
+
+
+    //  照合完了ところです。
+    function double_check(num) {
+        if (check_inpoola(num) === 0) {
+            pushSpeech(["このカートン箱に存在しないシリアル番号です",
+                "大外箱内不存在的序列号"]);
+            pushMSG("存在しない番号");
+            ckarray = [];
+            return;
+        }
+        ckarray.push(num);
+        if (ckarray.length === (opt["check_count"] - 1)) {
+            if (ckarray.every((e) => ckarray[0] === e)) {
+                pushMSG("照合番号一致します");
+                pushSpeech(["一致", "一致"])
+                ckarray = [];
+            } else {
+                pushMSG("照合エラー、番号一致しません");
+                pushSpeech(["照合エラー、番号一致しません", "照合错误,序列号不一致"])
+                ckarray = [];
+                return;
+            }
+            poolacopy.delete(num);
+            ckarray = [];
+            fb();
+            if (poolacopy.size === 0) {
+                console.log("poola", poola);
+                // poola.clear();
+                pushMSG("プールの照合が完了しました")
+                pushSpeech(["カートンシリアル、本体シリアル番号、化粧箱のシリアル番号の照合完了しました", "照合完成"]);
+                ckarray = [];
+                console.log("poola", poola);
+                setflag = 0;
+                fetchto();
+            }
+        }
+    }
+
+    // 
+    function check_inpoola(num) {
+        if (poola.has(num)) {
+            return num;
+        } else {
+            return 0;
+        }
+    }
+
+    function check_database() {
+
+    }
+
+    function into_database() {
+
+    }
+
+
+    async function ajaxto() {
+        let url = window.location.origin + '/check/check.php';
+        console.log("ajaxto", url);
+        let qu = await fetch(url);
+        if (qu.status === 200 && qu.statusText === "OK") {
+
+        }
+    }
+
+    async function myajax(num) {
+        try {
+            let url = "./check.php?imei=" + num;
+            let q = await fetch(url);
+            if (q.status == 200 && q.statusText == "OK") {
+                count(q.json());
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    fetchto();
+
+    function fetchto() {
+        let url = window.location.origin + '/check/check.php';
+        let fd = new FormData();
+        fd.append("doola", Array.from(poola));
+        fd.append("opt", JSON.stringify(opt));
+        fd.append("UUID", cartonID2());
+        fetch(url, {
+            method: 'POST',
+            body: fd
+        })
+            .then(function (e) {
+                return e.json();
+            })
+            .then((e) => {
+                return e;
+            })
+            .catch((e) => {
+                console.log(e);
+            })
+            .finally((e) => {
+                console.log("finally", e);
+            })
+
+    }
+
+    function pushMSG(msg) {
+        pushMSG_array.push(msg);
+        document.getElementById("thisout3").value = pushMSG_array[pushMSG_array.length - 3];
+        document.getElementById("thisout2").value = pushMSG_array[pushMSG_array.length - 2];
+        document.getElementById("thisout").value = pushMSG_array[pushMSG_array.length - 1];
+    }
+
+    function pushSpeech(msg) {
+        sheepX.cancel();
+        let v = new SpeechSynthesisUtterance();
+        console.log("splang", splang);
+        if (splang == SpeeCN) {
+            v.text = msg[1];
+            console.log("v.text", v.text);
+        } else {
+            v.text = msg[0];
+        }
+        v.voice = voices[spi];
+        sheepX.speak(v);
+    }
+
+
+
+    function fb() {
+        let poolarea = document.getElementById("pool");
+        poolarea.value = "";
+        for (let j of poolacopy) {
+            poolarea.value = poolarea.value + '\n' + j;
+        }
+    }
+
+    populateVoiceList();
+    function populateVoiceList() {
+        if (typeof speechSynthesis === "undefined") {
+            return;
+        }
+        voices = speechSynthesis.getVoices();
+        for (var i = 0; i < voices.length; i++) {
+            var option = document.createElement("option");
+            option.textContent = voices[i].name;
+            if (voices[i].default) {
+                option.textContent += " -- DEFAULT";
+            }
+            option.setAttribute("data-lang", voices[i].lang);
+            option.setAttribute("data-name", voices[i].name);
+            option.setAttribute("inde-x", i);
+            document.getElementById("voiceSelect").appendChild(option);
+        }
+    }
+
+    function speechfn() {
+        let selecttag = document.getElementById("voiceSelect");
+        selecttag.addEventListener("change", (e) => {
+            for (let i = 0; i < voices.length; i++) {
+                if (selecttag.value === voices[i].name) {
+                    console.log(i);
+                    console.log(voices[i].lang);
+                    splang = voices[i].lang;
+                    // ja-JP  zh-CN
+                    spi = i;
+                }
+            }
+        });
+    }
+
+    if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+</script>
+
+</html>

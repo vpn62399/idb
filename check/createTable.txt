@@ -1,0 +1,34 @@
+
+
+
+create table checksn.main(
+    indexkey SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY comment 'indexkey',
+    INDEX(indexkey),
+    projectID VARCHAR(3) NOT NULL,
+    palletNo VARCHAR(3) comment '表示要番号',
+    PalletNo_inside VARCHAR(3) NOT NULL comment '内部番号管理要、ランダム',
+    cartonNo  VARCHAR(3) comment '表示要番号',
+    cartonNo_inside VARCHAR(3) NOT NULL comment '内部番号管理要、ランダム',
+    scan_date date NOT NULL comment 'スキャンの日付',
+    scna_time time NOT NULL comment 'スキャンのタイム',
+    serialNo VARCHAR(20) NOT NULL comment 'シリアル番号、照合対処',
+    commentID VARCHAR(3) comment 'コメントID'
+)
+
+
+create table checksn.comment(
+    indexkey SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY comment 'indexkey',
+    INDEX(indexkey),
+    comments VARCHAR(500) NOT NULL comment 'コメントの記載場所',
+    idstable_id SMALLINT UNSIGNED NOT NULL comment 'idstable のID'
+)
+
+
+create table checksn.projectName(
+    indexkey SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY comment 'indexkey',
+    INDEX(indexkey),
+    pname VARCHAR(20) NOT NULL comment 'projectName',
+    comments VARCHAR(500) NOT NULL comment 'コメントの記載場所'
+)
+
+    
