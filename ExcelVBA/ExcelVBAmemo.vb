@@ -1,3 +1,9 @@
+Excel Consolas フォントを利用する
+Consolasフォントは、ソースコードの可読性を高めるために特別に調整されたフォントであり、
+特徴的な等幅文字と幅広い文字セットが特徴です。このフォントは、プログラミング用途や
+テキストエディタ、コンソールアプリケーションなど、コードを読む・書くための多くの
+アプリケーションで使用されています。
+
 ' VBA 文字コードを
 
 i = Asc("a")
@@ -26,9 +32,6 @@ Chr(32)    半角スペース
 =AND(LEN(J9)=12,SEARCH("NFZT60",J9))
 =SEARCH("NFZT", @C:C)			
 
-ZXHN F660A
-
-
 カーソル移動、日付入力のマクロ
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     Debug.Print "Worksheet_SelectionChange(Byval Target As Range)"
@@ -50,3 +53,10 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     End If
 
 End Sub
+
+    vbCrLf	Chr(13) + Chr(10)
+    vbCr	Chr(13)
+    vbLf	Chr(10)
+    vbNewLine	Chr(13) + Chr(10)。Macintosh の場合は、Chr(13)
+
+
